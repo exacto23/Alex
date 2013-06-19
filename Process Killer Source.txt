@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Process[] processlist = Process.GetProcesses();
+            Console.WriteLine("Please wait just one second.");
+            foreach (Process processes in processlist)
+            {                
+                
+                if (processes.Responding != true)
+                {
+                    processes.Kill();
+                }
+            }
+        }
+    }
+}
