@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.IO;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
+
+        static void create()
+        {
+            bool _executed = false;
+            if (_executed == false)
+            {
+                _executed = true;
+
+                Process[] processlist = Process.GetProcesses();
+
+                foreach (Process processes in processlist)
+                {
+                    System.IO.StreamWriter write = new StreamWriter(processes.ToString() + ".txt");
+                    write.Close();
+                }
+            }
+            flame();
+        }
+
+        static void flame()
+        {
+            var handle = GetConsoleWindow();
+            Console.WriteLine("Warming up. Window will dissapear in 5 seconds.");
+            System.Threading.Thread.Sleep(1000);
+            try
+            {
+                while (true)
+                {
+                    ShowWindow(handle, SW_HIDE);
+                    Process[] processlist = Process.GetProcesses();
+                    foreach (Process processes in processlist)
+                    {
+                        System.IO.StreamReader file = new StreamReader(processes.ToString() + ".txt");
+                        string line = file.ReadLine();
+                        file.Close();
+                        if ((processes.Responding != true) && (line != "ignore"))
+                        {
+                            ShowWindow(handle, SW_SHOW);
+                            Console.WriteLine("Flamethrower has detected a frozen process. Would you like to defrost it?(y/n) ");
+                            string answer2 = Console.ReadLine();
+                            if (answer2 == "y" || answer2 == "yes")
+                            {
+                                Console.WriteLine("Please wait just one second. Window will dissappear upon completion.");
+                                System.Threading.Thread.Sleep(1000);
+                                processes.Kill();
+                                ShowWindow(handle, SW_HIDE);
+                            }
+                            else
+                            {
+                                System.IO.StreamWriter rewrite = new StreamWriter(processes.ToString() + ".txt");
+                                Console.WriteLine("I understand. Flamethrower is cooling down.");
+                                rewrite.WriteLine("ignore");
+                                System.Threading.Thread.Sleep(2000);
+                                rewrite.Close();
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("|");
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                create();
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Would you like to start Flamethrower?(y/n) ");
+            string answer = Console.ReadLine();
+            if (answer == "y" || answer == "yes")
+            {
+                create();
+            }
+            else
+            {
+                Environment.Exit(0);
+            }
+        }
+    }
+}
