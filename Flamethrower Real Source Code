@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.IO;
+
+namespace Flamethrower
+{
+    class Program
+    {
+        // Starts importing the extensions that allow the window to be hidden.
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        // -------------------------------------------------------------------
+
+        // States of window (hidden/shown).
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
+        // -------------------------------------------------------------------
+
+        // Method to create the text files for each process.
+        static void create()
+        {
+            bool _executed = false; // Variable that tells if the method has been executed.
+
+            if (_executed == false) // Runs code if it hasn't been executed.
+            {
+                _executed = true; // Indicates that it has now been executed.
+
+                Process[] processlist = Process.GetProcesses(); // Creates array that includes all of the running processes.
+
+                foreach (Process processes in processlist) // For each item in the process list array it will make a variable and run this code with it.
+                {
+                    System.IO.StreamWriter write = new StreamWriter(processes.ToString() + ".txt"); // Creates new text file for every process.
+                    write.Close();
+                }
+            }
+            flame(); // Runs the flame method (the part that does things).
+        }
+        // --------------------------------------------------------------------
+
+        // Method that does things.
+        static void flame()
+        {
+            var handle = GetConsoleWindow(); // Variable to determine the location of the window.
+            Console.WriteLine("Warming up. Window will dissapear in 5 seconds.");
+            System.Threading.Thread.Sleep(1000);
+
+            // Everthing inside this try statement will be ran until it reaches an error.  
+            // If there is an error (a new process opens) it will run the code in the catch statement.
+            try
+            {
+                while (true) // This is a loop that will always run for all of eternity.
+                {
+                    ShowWindow(handle, SW_HIDE); // Hides window.
+                    Process[] processlist = Process.GetProcesses(); // Again creates the process array.
+
+                    foreach (Process processes in processlist) // Same thing as seen above.
+                    {
+                        System.IO.StreamReader file = new StreamReader(processes.ToString() + ".txt"); // Sets up streamreader to read content of the processes text file.
+                        string line = file.ReadLine(); // Reads the content and puts it into a string.
+                        file.Close();
+
+                        if ((processes.Responding != true) && (line != "ignore")) // If the process isn't responding and the text file doesn't have the text "ignore" in it it will tun this code.
+                        {
+                            ShowWindow(handle, SW_SHOW); // Shows window.
+                            Console.WriteLine("Flamethrower has detected a frozen process. Would you like to defrost it?(y/n) ");
+                            string answer2 = Console.ReadLine(); // Detects users input and puts it into a string.
+
+                            if (answer2 == "y" || answer2 == "yes") // If the user answers "yes" then do this code.
+                            {
+                                Console.WriteLine("Please wait just one second. Window will dissappear upon completion.");
+                                System.Threading.Thread.Sleep(1000);
+                                processes.Kill(); // Kills the unresponsive process.
+                                ShowWindow(handle, SW_HIDE); // Hides window.
+                            }
+                            else // If the user types "no" or anything else it will run this code.
+                            {
+                                System.IO.StreamWriter rewrite = new StreamWriter(processes.ToString() + ".txt"); // Prepares to write to the processes text file.
+                                Console.WriteLine("I understand. Flamethrower is cooling down.");
+                                rewrite.WriteLine("ignore"); // Puts "ignore" as text in the text file.
+                                System.Threading.Thread.Sleep(2000);
+                                rewrite.Close();
+                            }
+                        }
+                        else // If the process is responding it will do this.
+                        {
+                            Console.WriteLine("|"); // Just simply prints a pipe character to the console for debuging purposes.
+                        }
+                    }
+                }
+            }
+            // -----------------------------------------------------------------
+
+            catch // Runs on error.
+            {
+                create(); // Re-runs the create method when a new process appears.
+            }
+        }
+        // ---------------------------------------------------------------------
+
+        // Method that runs on startup.
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Would you like to start Flamethrower?(y/n) ");
+            string answer = Console.ReadLine(); // Reads the users response.
+
+            if (answer == "y" || answer == "yes") // If user answers "yes" then run code.
+            {
+                create(); // Runs the code up top that creates the text files and initiates the flame method.
+            }
+            else // If the user answers anything but yes run this.
+            {
+                Environment.Exit(0); // Exits the program.
+            }
+        }
+        // ---------------------------------------------------------------------
+    }
+}
